@@ -2,11 +2,11 @@
 ##########################################################
 stationary detector  object constructor:
 ##########################################################
-creates a stationary (cross-section) detector 
-at a road segment at logical longitudinal coordinate u, 
-updating its counts every dtAggr seconds. 
+creates a stationary (cross-section) detector
+at a road segment at logical longitudinal coordinate u,
+updating its counts every dtAggr seconds.
 
-The macroscopic output also aggregates over all lanes while the 
+The macroscopic output also aggregates over all lanes while the
 microscopic output also gives the lane index of the passage event
 
 @param road:          the road segement at which the detector is positioned
@@ -41,19 +41,19 @@ function stationaryDetector(road,u,dtAggr){
     this.historyOcc[0]=0;
     this.optStat[0]=0;
     this.historyGC[0]=0;
-    this.time[0]=0;
+    this.time[0]=time;
     this.vehCount=0; // counting inside each aggregation interval (all lanes)
     this.speedSum=0; // summing inside each aggregation interval
     this.occSum=0; // summation of occupancy in sec
     this.greenCycle=[]; //stores individual green cycle duration samples
     this.nLanes=this.road.nLanes;
-    this.vehNearOld=(this.u<0.5*this.road.roadLen) 
+    this.vehNearOld=(this.u<0.5*this.road.roadLen)
 	? this.road.findLeaderAt(this.u) : this.road.findFollowerAt(this.u);
 }
 
 stationaryDetector.prototype.update=function(time,dt,gc,stat){
   this.greenCycle.push(gc);
-  var vehNear=(this.u<0.5*this.road.roadLen)  
+  var vehNear=(this.u<0.5*this.road.roadLen)
 	 ? this.road.findLeaderAt(this.u) : this.road.findFollowerAt(this.u);
   if(vehNear.id != this.vehNearOld.id){
         // if desired, add single-vehicle data record here
@@ -64,7 +64,7 @@ stationaryDetector.prototype.update=function(time,dt,gc,stat){
 	this.vehNearOld=vehNear;
   this.vehCount++;
 	this.speedSum += vehNear.speed;
-  this.occSum += (vehNear.speed>0) ? (1.83+vehNear.length)/(vehNear.speed) : 0;  
+  this.occSum += (vehNear.speed>0) ? (1.83+vehNear.length)/(vehNear.speed) : 0;
   }
   if(time>=this.iAggr*this.dtAggr+this.dtAggr){
     this.iAggr++;
@@ -77,7 +77,7 @@ stationaryDetector.prototype.update=function(time,dt,gc,stat){
     this.vehCount=0;
     this.speedSum=0;
     this.occSum=0;
-    this.greenCycle=[];    
+    this.greenCycle=[];
     if(false){
       console.log("\nnew aggregation:",
 	    " this.historyFlow[",this.iAggr,"]=",
@@ -105,14 +105,14 @@ stationaryDetector.prototype.reset=function(){
   this.time[0]=0;
   this.vehCount=0; // counting inside each aggregation interval (all lanes)
   this.speedSum=0; // summing inside each aggregation interval
-  this.occSum=0; 
+  this.occSum=0;
   this.greenCycle=[];
 }
 
 
 stationaryDetector.prototype.display=function(textsize){
     //console.log("in stationaryDetector.display(textsize)");
- 
+
   ctx.font=textsize+'px Arial';
 
   var flowStr="Flow: "+Math.round(3600*this.historyFlow[this.iAggr])
@@ -123,12 +123,12 @@ stationaryDetector.prototype.display=function(textsize){
 	+" km/h";
   var occStr="Occ.: "+this.historyOcc[this.iAggr].toFixed(2)
   +" %";
- 
+
 
     var phi=this.road.get_phi(this.u);
     var cphi=Math.cos(phi);
     var sphi=Math.sin(phi);
-    
+
     //var toRight_axis=-1.1*this.road.nLanes*this.road.laneWidth;
     var roadWidth=this.road.nLanes*this.road.laneWidth;
     //var toRight_axis=-(1.1+0.8*Math.abs(sphi))*roadWidth;
@@ -147,7 +147,7 @@ stationaryDetector.prototype.display=function(textsize){
     var xCenterPix1=  scale*this.road.traj_x(this.u-0.5*detLineDist);
     var yCenterPix1= -scale*this.road.traj_y(this.u-0.5*detLineDist);//minus!!
     var xCenterPix2=  scale*this.road.traj_x(this.u+0.5*detLineDist);
-    var yCenterPix2= -scale*this.road.traj_y(this.u+0.5*detLineDist); 
+    var yCenterPix2= -scale*this.road.traj_y(this.u+0.5*detLineDist);
     var wPix=scale*detLineWidth;
     var lPix=scale*detLineLength;
 
@@ -160,7 +160,7 @@ stationaryDetector.prototype.display=function(textsize){
 
     // the textbox
 
-    ctx.setTransform(1,0,0,1,0,0); 
+    ctx.setTransform(1,0,0,1,0,0);
     ctx.fillStyle="rgb(255,255,255)";
     ctx.fillRect(xPixCenter-0.5*boxWidth, yPixCenter-0.5*boxHeight,boxWidth,boxHeight);
     ctx.fillStyle="rgb(0,0,0)";
@@ -168,7 +168,3 @@ stationaryDetector.prototype.display=function(textsize){
     ctx.fillText(speedStr,xPixCenter-0.46*boxWidth,yPixCenter+0.1*boxHeight);
     ctx.fillText(occStr,xPixCenter-0.46*boxWidth,yPixCenter+0.45*boxHeight);
 }
-
-
-
-

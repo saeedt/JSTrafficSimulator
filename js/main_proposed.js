@@ -4,7 +4,7 @@
     (from https://github.com/davidbau/seedrandom, copied locally)
 
 (2) apply Math.seedrandom(42) or Math.seedrandom("hello") or similar
-    in all files containing Math.random commands 
+    in all files containing Math.random commands
     => at present, only road.js
 
 !! only use inside functions/methods, e.g., in road constructor;
@@ -12,7 +12,7 @@
 
 console.log(Math.random());          // Always 0.0016341939679719736 with 42
 console.log(Math.random());          // Always 0.9364577392619949 with 42
- Math.seedrandom(42);                // undo side effects of console commands 
+ Math.seedrandom(42);                // undo side effects of console commands
 */
 
 // following in control_gui.js; call bash/eng2ger.bash to propagate it to ger
@@ -20,10 +20,10 @@ console.log(Math.random());          // Always 0.9364577392619949 with 42
 //function formd(x){return parseFloat(x).toFixed(2);}
 
 var userCanDistortRoads=false;
-var userCanDropObjects=true;
+var userCanDropObjects=false;
 
 nLanesMin=1;
-nLanesMax=4; 
+nLanesMax=4;
 
 //#############################################################
 // adapt standard IDM and MOBIL model parameters from control_gui.js
@@ -52,12 +52,12 @@ MOBIL_bSafeMax=17;
 // run-time specification and functions
 //############################################
 
-var time=0;
+var time=25200; //start time, set to 7:00 AM
 var itime=0;
-const fps=60; // frames per second (unchanged during runtime): dtermines how fast the simulation is updated
-timeStep = 1;
+const fps=150; // frames per second (unchanged during runtime): dtermines how fast the simulation is updated
+timeStep = 3;
 var dt=timeStep;
-const endTime = 86400; //86400 for 24 hours
+const endTime = 28800; //8:00 AM
 const reportInt = 60; //report aggregation interval
 var dataIndex = 0;
 var detIndex = 0;
@@ -77,7 +77,7 @@ IDM_v0=88.51/3.6; //converts km/h to m/s: 1000/6300 = 1/3.6
 slider_IDM_v0.value=3.6*IDM_v0;
 slider_IDM_v0Val.innerHTML=3.6*IDM_v0+" km/h";
 
-let mainFlow = data.totalflow[dataIndex]-data.rampflow[dataIndex]; 
+let mainFlow = data.totalflow[dataIndex]-data.rampflow[dataIndex];
 mainFlow = (mainFlow>0) ? mainFlow : 0;
 qIn=mainFlow*flow_mltpr/3600.; // inflow 4400./3600; convers flow per hour to flow per second
 slider_qIn.value=3600*qIn;
@@ -93,81 +93,29 @@ if(!(typeof uOffset === 'undefined')){
   slider_qOnVal.innerHTML=formd0(3600*qOn)+" V/h";
 }
 
-//#############################################################
-// programmatic traffic light control
-//#############################################################
-
-/** switches the active traffic-light object TL (element of depot.obstTL[])
- as a function of time.
-
-@param TL:        TrafficObjects traffic object of type trafficLight
-                  which must be active (on a road)
-@param qRoad:     traffic flow on this link. 
-                  if !isFixed, the green phase duration depends on it
-@param time:      simulation time [s]
-@param cycleTime: fixed time for a complete TL cycle
-@param greenTime: (optional) green phase; used if isFixed=true
-@param isFixed:   (optional) if true, the green phase=greenTime is fixed
-*/
-
-function switchingSchemeTL(TL,qRoad,time,cycleTime,greenTime,isFixed){
-
-  if(!(TL.type==='trafficLight')){ 
-    console.log("switchingSchemeTL: error:",
-		" can only switch active traffic light objects");
-    return;
-  }
-  var isGreen;
-  if (false) { //old controls, no longer used
-    var qmax=IDM_v0/(IDM_v0*IDM_T+car_length);  // upper limit, only cars
-    var fracGreen=Math.min(qRoad/qmax, 1.);
-    if(!(typeof isFixed === 'undefined')){fracGreen=greenTime/cycleTime;}
-    var nCycle=Math.floor(time/cycleTime);
-    var fracCycle=time/cycleTime-nCycle;
-    isGreen=(fracCycle<fracGreen);
-  }
-  
-  if (true) { //no ramp metering
-    isGreen = true;
-  }
-
-
-  // do the action
-
-  var newState=(isGreen) ? "green" : "red";
-  trafficObjs.setTrafficLight(TL, newState); 
-
-  if(false){
-    console.log("switchingSchemeTLup: time=",time,
-		" fracGreen=",fracGreen," nCycle=",nCycle,
-		" fracCycle=",fracCycle," isGreen=",isGreen);
-  }
-}
-
-
 /*######################################################
  Global overall scenario settings and graphics objects
 
  refSizePhys  => reference size in m (generally smaller side of canvas)
  refSizePix   => reference size in pixel (generally smaller side of canvas)
- scale = refSizePix/refSizePhys 
+ scale = refSizePix/refSizePhys
        => roads have full canvas regardless of refSizePhys, refSizePix
 
- (1) refSizePix=Math.min(canvas.width, canvas.height) determined during run  
+ (1) refSizePix=Math.min(canvas.width, canvas.height) determined during run
 
  (2) refSizePhys smaller  => all phys roadlengths smaller
-  => vehicles and road widths appear bigger for a given screen size 
-  => chose smaller for mobile, 
+  => vehicles and road widths appear bigger for a given screen size
+  => chose smaller for mobile,
 
-  Example: refSizePhys propto sqrt(refSizePix) => roads get more compact 
+  Example: refSizePhys propto sqrt(refSizePix) => roads get more compact
   and vehicles get smaller, both on a sqrt basis
 
-  Or jump at trigger refSizePix<canvasSizeCrit propto clientSize 
+  Or jump at trigger refSizePix<canvasSizeCrit propto clientSize
   => css cntrl normal/mobile with 2 fixed settings
 
-  NOTICE: canvas has strange initialization of width=300 in firefox 
-  and DOS when try sizing in css (see there) only 
- 
+  NOTICE: canvas has strange initialization of width=300 in firefox
+  and DOS when try sizing in css (see there) only
+
   document.getElementById("contents").clientWidth; .clientHeight;
 
   always works!
@@ -181,9 +129,9 @@ console.log("\n\nstart main: scenarioString=",scenarioString);
 
 
 var simDivWindow=document.getElementById("contents");
-var canvas = document.getElementById("canvas"); 
+var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d"); // graphics context
-canvas.width  = simDivWindow.clientWidth; 
+canvas.width  = simDivWindow.clientWidth;
 canvas.height  = simDivWindow.clientHeight;
 var aspectRatio=canvas.width/canvas.height;
 
@@ -194,7 +142,7 @@ console.log("after addTouchListeners()");
 
 
 //##################################################################
-// overall scaling (critAspectRatio should be consistent with 
+// overall scaling (critAspectRatio should be consistent with
 // width/height in css.#contents)
 //##################################################################
 
@@ -231,7 +179,7 @@ var rampLen, mergeLen, mainRampOffset, taperLen, rampRadius;
 
 updateDimensions();
 
-// the following remains constant 
+// the following remains constant
 // => road becomes more compact for smaller screens
 
 var laneWidth=7; // remains constant => road becomes more compact for smaller
@@ -242,7 +190,7 @@ var nLanes_rmp=1;
 var car_length=7; // car length in m: 7m deafult
 var car_width=5; // car width in m
 var truck_length=15; // trucks: 15m deafault
-var truck_width=7; 
+var truck_width=7;
 //min distance is set to 15m (see line 2935 in road.js)
 
 function updateDimensions(){ // if viewport or sizePhys changed
@@ -252,8 +200,8 @@ function updateDimensions(){ // if viewport or sizePhys changed
   arcRadius=arcRadiusRel*refSizePhys;
   arcLen=arcRadius*Math.PI;
   straightLen=refSizePhys*critAspectRatio-center_xPhys;
- 
-  rampLen=rampLenRel*refSizePhys; 
+
+  rampLen=rampLenRel*refSizePhys;
   mergeLen=0.3*rampLen; //Changed this from .4 to .3 to shorten the ramp
   mainRampOffset=mainroadLen-straightLen+mergeLen-rampLen+0.4*straightLen;
   taperLen=50;
@@ -265,7 +213,7 @@ function updateDimensions(){ // if viewport or sizePhys changed
 
 
 // on constructing road, road elements are gridded and internal
-// road.traj_xy(u) are generated if doGridding=true (here false). If true, 
+// road.traj_xy(u) are generated if doGridding=true (here false). If true,
 // traj_xy*(u) obsolete ??!!!
 
 function traj_x(u){ // physical coordinates
@@ -290,13 +238,13 @@ function traj_y(u){ // physical coordinates
 // linear change of heading between the pivot points
 
 // NOTICE: in defining dependent geometry,
-// do not refer to mainroad or onramp!! may not be defined: 
+// do not refer to mainroad or onramp!! may not be defined:
 // mainroad.nLanes => nLanes_main, ramp.nLanes=>nLanes_ramp1!!
 
 function headingRamp(u){
 
   var um1=0; var headingm1=0.2; // heading at ramp begin
-  var u0=0.3*(rampLen-mergeLen); var heading0=0; 
+  var u0=0.3*(rampLen-mergeLen); var heading0=0;
   var u1=0.4*(rampLen-mergeLen); var heading1=0;
   var u2=0.5*(rampLen-mergeLen); var heading2=0.0; // 0.2;
   var u3=0.55*(rampLen-mergeLen); var heading3=0;
@@ -331,7 +279,7 @@ var yRamp=[];
 
 function updateRampGeometry(){
 
-  // crucial: correct x/y attachment at begin of merge 
+  // crucial: correct x/y attachment at begin of merge
   // (assume heading=0 @ merge for the moment)
 
   xRamp[nArrRamp-1]=traj_x(mainRampOffset+rampLen-mergeLen)+mergeLen;
@@ -346,7 +294,7 @@ function updateRampGeometry(){
 
   //!!! necessary, since roads internal tables!
 
-  ramp.gridTrajectories(trajRamp_x,trajRamp_y); 
+  ramp.gridTrajectories(trajRamp_x,trajRamp_y);
   //console.log("in updateRampGeometry: nLanes_main=",nLanes_main,
 //	      " trajRamp_y(rampLen-50)=",formd(trajRamp_y(rampLen-50))
 //	     );
@@ -370,7 +318,7 @@ function trajRamp_y(u){ // physical coordinates
 
 
 //##################################################################
-// Specification of logical road 
+// Specification of logical road
 //##################################################################
 
 var isRing=false;  // 0: false; 1: true
@@ -414,7 +362,7 @@ detectors[1]=new stationaryDetector(mainroad,0.96*mainroadLen,reportInt);
 //#########################################################
 // model initialization (models and methods defined in control_gui.js)
 //#########################################################
-	
+
 updateModels(); // defines longModelCar,-Truck,LCModelCar,-Truck,-Mandatory
 
 
@@ -441,8 +389,8 @@ var vmax_col=100/3.6; // max speed for speed colormap (drawn in blue-violet)
 // init background image
 
 var background = new Image();
-background.src ='figs/backgroundGrass.jpg'; 
- 
+background.src ='figs/backgroundGrass.jpg';
+
 
 // init vehicle image(s)
 
@@ -503,12 +451,13 @@ rampImg=roadImgs1[nLanes_rmp-1];
 var trafficObjs=new TrafficObjects(canvas,1,0,0.50,0.72,1,1);
 var trafficLightControl=new TrafficLightControlEditor(trafficObjs,0.5,0.5);
 
-var rampMeterLight=trafficObjs.trafficObj[0]; 
+var rampMeterLight=trafficObjs.trafficObj[0];
 //activate(trafficObject,road,u) or activate(trafficObject,road)
 trafficObjs.activate(rampMeterLight,ramp,rampLen-mergeLen-80);
 
-var gk = 40; //green phase duaration in seconds 
-var lightStatus;
+var gk = 40; //green phase duaration in seconds
+var lightStatus = [[],[]];
+
 //#################################################################
 function updateSim(){
 //#################################################################
@@ -520,12 +469,12 @@ function updateSim(){
 
   //onramp and main flows from the data file
   if (dataIndex+1 < data.time.length){
-    if (time >= data.time[dataIndex+1]){  
+    if (time >= data.time[dataIndex+1]){
       dataIndex++;
-    }        
+    }
   }
   qOn = data.rampflow[dataIndex]*flow_mltpr/3600.;
-  let mainFlow = data.totalflow[dataIndex]-data.rampflow[dataIndex]; 
+  let mainFlow = data.totalflow[dataIndex]-data.rampflow[dataIndex];
   mainFlow = (mainFlow>0) ? mainFlow : 0;
   qIn = mainFlow*flow_mltpr/3600.; // inflow 4400./3600; convers flow per hour to flow per second
   slider_qIn.value=3600*qIn;
@@ -534,8 +483,8 @@ function updateSim(){
     // (2) transfer effects from slider interaction and mandatory regions
     // to the vehicles and models
 
-  
-  
+
+
 
   updateRampGeometry();
 
@@ -556,12 +505,12 @@ function updateSim(){
     network[i].updateSpeedlimits(trafficObjs);
   }
 
-  // (2b) programmatic control upstream secondary network  
+  // (2b) programmatic control upstream secondary network
 
-  //switchingSchemeTLup(depot.obstTL[0],qOn,time); // with explicit TL 
-  /*qOn=externalOnrampDemand(time);*/                  // implicit flow control  
+  //switchingSchemeTLup(depot.obstTL[0],qOn,time); // with explicit TL
+  /*qOn=externalOnrampDemand(time);*/                  // implicit flow control
 
-  // (2c) programmatic control downstream ramp meter TL 
+  // (2c) programmatic control downstream ramp meter TL
 
   // (2d) externally impose mandatory LC behaviour
   // all ramp vehicles must change lanes to the left (last arg=false)
@@ -572,8 +521,8 @@ function updateSim(){
     // (3) do central simulation update of vehicles
 
     mainroad.updateLastLCtimes(dt);
-    mainroad.calcAccelerations();  
-    mainroad.changeLanes();         
+    mainroad.calcAccelerations();
+    mainroad.changeLanes();
     mainroad.updateSpeedPositions();
     mainroad.updateBCdown();
     mainroad.updateBCup(qIn,dt); // argument=total inflow
@@ -586,7 +535,7 @@ function updateSim(){
     	}
     }
 
-    ramp.calcAccelerations();  
+    ramp.calcAccelerations();
     ramp.updateSpeedPositions();
     //ramp.updateBCdown();
     ramp.updateBCup(qOn,dt); // argument=total inflow
@@ -604,9 +553,9 @@ function updateSim(){
     }
 
     if (detIndex+1 < detectors[iDet].time.length){ //update the sensor data index if needed
-    if (time >= detectors[iDet].time[detIndex+1]){  
+    if (time >= detectors[iDet].time[detIndex+1]){
       detIndex++;
-    }        
+    }
   }
 
   let isGreen = true;
@@ -629,29 +578,29 @@ function updateSim(){
    let fracGreen=gk/40;
    let nCycle=Math.floor(time/40);
    let fracCycle=time/40.-nCycle;
-   isGreen=(fracCycle<fracGreen);   
+   isGreen=(fracCycle<fracGreen);
   }
 
   //############################################
   //Proposed Ramp Metering
   //############################################
 
-  if (PROP_RM && time<endTime){        
+  if (PROP_RM && time<endTime){
     let nextP = predictLR([detectors[iDet].time[detIndex],
                 Math.round((detectors[iDet].historyOcc[detIndex]+Number.EPSILON)*100)/100,
                 Math.round(3.6*detectors[iDet].historySpeed[detIndex]),
-                Math.round(3600*detectors[iDet].historyFlow[detIndex])]);    
+                Math.round(3600*detectors[iDet].historyFlow[detIndex])]);
     /*if (detIndex>0) {
       let prevP = predictLR([detectors[iDet].time[detIndex-1],
                   Math.round((detectors[iDet].historyOcc[detIndex-1]+Number.EPSILON)*100)/100,
                   Math.round(3.6*detectors[iDet].historySpeed[detIndex-1]),
-                  Math.round(3600*detectors[iDet].historyFlow[detIndex-1])]);  //previous prediction    
+                  Math.round(3600*detectors[iDet].historyFlow[detIndex-1])]);  //previous prediction
       let prevPE =(prevP-Math.round(3600*detectors[iDet].historyFlow[detIndex]))*1./prevP;      //previous prediction error
       if ((prevPE<-0.5) || (prevPE>0.7)){ //correct the next prediction if needed
-        nextP *= (1-prevPE);      
+        nextP *= (1-prevPE);
       }
-    } */   
-    let curP =(dt*(nextP-Math.round(3600*detectors[iDet].historyFlow[detIndex]))*1./(detectors[iDet].time[detIndex]+reportInt-time))+Math.round(3600*detectors[iDet].historyFlow[detIndex]); //linear interpolation to calculate the flow for the next timeStep   
+    } */
+    let curP =(dt*(nextP-Math.round(3600*detectors[iDet].historyFlow[detIndex]))*1./(detectors[iDet].time[detIndex]+reportInt-time))+Math.round(3600*detectors[iDet].historyFlow[detIndex]); //linear interpolation to calculate the flow for the next timeStep
     if (curP>2000){ //ramp metering colume threshold
       const tType=predictKM((nextP-Math.round(3600*detectors[iDet].historyFlow[detIndex]))*1./reportInt);
       let fracGreen = 1;
@@ -661,16 +610,16 @@ function updateSim(){
       case 1: //lowest two rates
       case 2: //Rs(t+1) = 1+(2xCap) capacity is slowly decreasing
       //use 90% model, medium capacity
-        cap = 2200/(32.532*Math.pow(Math.round(3.6*detectors[iDet].historySpeed[detIndex]),-0.9682));        
+        cap = 2200/(32.532*Math.pow(Math.round(3.6*detectors[iDet].historySpeed[detIndex]),-0.9682));
       break;
       case 3: //about 0 Rs(t+1) = 1+(1.9xCap) capacity is a bit higher
-        //use 95% model: highest capacity         
-        cap = 2000/(32.793*Math.pow(Math.round(3.6*detectors[iDet].historySpeed[detIndex]),-0.9916));        
+        //use 95% model: highest capacity
+        cap = 2000/(32.793*Math.pow(Math.round(3.6*detectors[iDet].historySpeed[detIndex]),-0.9916));
       break;
       case 4: //highest two rates
       case 5: //Rs(t+1) = 1+(2.1xCap) capacity is low
       // use 85% model: lowest capacity
-        cap = 1600/(32.537*Math.pow(Math.round(3.6*detectors[iDet].historySpeed[detIndex]),-0.9524));        
+        cap = 1600/(32.537*Math.pow(Math.round(3.6*detectors[iDet].historySpeed[detIndex]),-0.9524));
       break;
     }
     fracGreen -= (curP*1./cap)*.75;
@@ -679,19 +628,19 @@ function updateSim(){
     gk = Math.round(40*fracGreen); //for data logging
     let nCycle=Math.floor(time/40);
     let fracCycle=(time/40.)-nCycle;
-    isGreen=(fracCycle<fracGreen);    
+    isGreen=(fracCycle<fracGreen);
     } else {
       isGreen = true;
       gk = 40;
-    }    
+    }
   }
 
   //template switchingSchemeTL(TL,qRoad,time,cycleTime,greenTime,isFixed)
-  //switchingSchemeTL(rampMeterLight,qOn,time,7,3,true); //!!! (1) das macht Fuck!! for debug off 
+  //switchingSchemeTL(rampMeterLight,qOn,time,7,3,true); //!!! (1) das macht Fuck!! for debug off
   //Always green light
   lightStatus[1].push((isGreen)? 1:0);
   const newState=(isGreen) ? "green" : "red";
-  trafficObjs.setTrafficLight(rampMeterLight, newState); 
+  trafficObjs.setTrafficLight(rampMeterLight, newState);
 
   //  (5) without this zoomback cmd, everything works but depot vehicles
   // just stay where they have been dropped outside of a road
@@ -699,32 +648,6 @@ function updateSim(){
   if(userCanDropObjects&&(!isSmartphone)&&(!trafficObjPicked)){//xxxnew
     trafficObjs.zoomBack();
  }
-
-
-// (6) debug output
-
-    //if((itime>=125)&&(itime<=128)){
-  if(false){
-    console.log("\n\nitime=",itime,": end of updateSim loop");
-
-    if(false){
-      console.log("\nmainroad vehicles:");
-      mainroad.writeVehiclesSimple();
-      ramp.writeVehiclesSimple();
-    }
-
-    if(false){
-      onlyTL=true;
-      trafficObjs.writeObjects(onlyTL); //the trafficObjs general TL objects
-      onlyTL=true;
-      mainroad.writeTrafficLights(); // the road's operational TL objects
-      ramp.writeTrafficLights(); 
-      mainroad.writeDepotVehObjects();
-      ramp.writeDepotVehObjects();
-    }
-    //if(time>1.2){clearInterval(myRun);}
-  }
-
 
 }//updateSim
 
@@ -742,10 +665,10 @@ function drawSim() {
   var uObs=0*time;
 
     // (1) redefine graphical aspects of road (arc radius etc) using
-    // responsive design if canvas has been resized 
+    // responsive design if canvas has been resized
     // isSmartphone defined in updateSim
- 
-  var relTextsize_vmin=(isSmartphone) ? 0.03 : 0.02; 
+
+  var relTextsize_vmin=(isSmartphone) ? 0.03 : 0.02;
   var textsize=relTextsize_vmin*Math.min(canvas.width,canvas.height);
 
 
@@ -763,13 +686,13 @@ function drawSim() {
     updateDimensions();
     trafficObjs.calcDepotPositions(canvas);
 
-    if(true){
+    if(false){
 	    console.log("haschanged=true: new canvas dimension: ",
 		        canvas.width," X ",canvas.height);
     }
   }
 
- 
+
 
 
   // (2) reset transform matrix and draw background
@@ -777,7 +700,7 @@ function drawSim() {
 
   ctx.setTransform(1,0,0,1,0,0);
   if(drawBackground){
-	if(hasChanged||(itime<=15) || (itime===20) || userCanvasManip 
+	if(hasChanged||(itime<=15) || (itime===20) || userCanvasManip
 	   || movingObserver || (!drawRoad)){
         ctx.drawImage(background,0,0,canvas.width,canvas.height);
       }
@@ -786,19 +709,19 @@ function drawSim() {
 
   // (3) draw mainroad
   // (always drawn; but changedGeometry=true necessary
-  // if changed (it triggers building a new lookup table). 
+  // if changed (it triggers building a new lookup table).
   // Otherwise, road drawn at old position
 
-    var changedGeometry=userCanvasManip || hasChanged||(itime<=1)||true; 
+    var changedGeometry=userCanvasManip || hasChanged||(itime<=1)||true;
   ramp.draw(rampImg,rampImg,scale,changedGeometry);
-	//	movingObserver,0, 
+	//	movingObserver,0,
 	//	center_xPhys-mainroad.traj_x(uObs)+ramp.traj_x(0),
-	//	center_yPhys-mainroad.traj_y(uObs)+ramp.traj_y(0)); 
+	//	center_yPhys-mainroad.traj_y(uObs)+ramp.traj_y(0));
 
-    mainroad.draw(roadImg1,roadImg2,scale,changedGeometry); 
+    mainroad.draw(roadImg1,roadImg2,scale,changedGeometry);
 
 
- 
+
     // (4) draw vehicles
 
     ramp.drawVehicles(carImg,truckImg,obstacleImgs,scale,
@@ -813,7 +736,7 @@ function drawSim() {
 			  movingObserver,uObs,center_xPhys,center_yPhys);
 
 
-   // (5a) draw traffic objects 
+   // (5a) draw traffic objects
 
   if(userCanDropObjects&&(!isSmartphone)){
     trafficObjs.draw(scale);
@@ -821,7 +744,7 @@ function drawSim() {
 
   // (5b) draw speedlimit-change select box
 
-  ctx.setTransform(1,0,0,1,0,0); 
+  ctx.setTransform(1,0,0,1,0,0);
   drawSpeedlBox();
 
 
@@ -833,24 +756,24 @@ function drawSim() {
     detectors[iDet].display(textsize);
   }
 
-  // (7) draw the speed colormap 
+  // (7) draw the speed colormap
   // MT 2019: drawColormap=false if drawn statically by html file!
 
-  if(drawColormap){ 
+  if(drawColormap){
     displayColormap(0.22*refSizePix,
 			0.43*refSizePix,
 			0.1*refSizePix, 0.2*refSizePix,
 			vmin_col,vmax_col,0,100/3.6);
   }
 
-  // may be set to true in next step if changed canvas 
-  // or old sign should be wiped away 
+  // may be set to true in next step if changed canvas
+  // or old sign should be wiped away
 
   hasChanged=false;
 
   // revert to neutral transformation at the end!
 
-  ctx.setTransform(1,0,0,1,0,0); 
+  ctx.setTransform(1,0,0,1,0,0);
  }
 
 //##################################################
@@ -862,8 +785,8 @@ var clusters;
 function trainModels(){
   const xdata = trdata.time.map((_,i)=>[trdata.time[i],trdata.occ[i],trdata.speed[i],trdata.pvol[i]]);
   const ydata = trdata.pvol.map((_,i)=>[trdata.vol[i],trdata.vol[i]]);
-  regression = new ML.MultivariateLinearRegression(xdata, ydata); 
-  
+  regression = new ML.MultivariateLinearRegression(xdata, ydata);
+
   let dvol = [];
   for (let i=1; i<trdata.vol.length; i++){
     dvol[i-1] = [0,(trdata.vol[i] - trdata.vol[i-1])/(trdata.time[i] - trdata.time[i-1])];
@@ -873,7 +796,7 @@ function trainModels(){
   for (var i=0; i<result.centroids.length; i++){
     clusters[i] = result.centroids[i].centroid[1];
   }
-  clusters.sort(function(a, b){return a - b});  
+  clusters.sort(function(a, b){return a - b});
 }
 
 function predictKM(input){
@@ -901,6 +824,8 @@ function main_loop() {
     clearInterval(myRun);
     isStopped = true;
     document.getElementById("startStop").src="figs/buttonGo_small.png";
+    prepPlots();
+    dlResults();
     return;
   }
     updateSim();
@@ -914,11 +839,13 @@ function run_sim(){
   lightStatus[0] = [];
   lightStatus[1] = [];
   if (PROP_RM){
-    trainModels();    
+    trainModels();
     }
   while (time <= endTime){
-    updateSim();    
-  }
+    updateSim();
+    drawSim();
+    userCanvasManip=false;
+}
   //console.log(getResults());
   document.getElementById("startStop").src="figs/buttonGo_small.png";
   console.log("Simulation Complete");
@@ -932,16 +859,16 @@ function prepResults(){
       Math.round(3.6*detectors[1].historySpeed[i]),Math.round(3600*detectors[1].historyFlow[i]),
       Math.round(3600*detectors[0].historyFlow[i]),detectors[1].optStat[i],
       Math.round((detectors[1].historyGC[i]+Number.EPSILON)*100)/100]);
-  const r2 = lightStatus[0].map((_,i)=>[lightStatus[0][i],lightStatus[1][i]]);                  
+  const r2 = lightStatus[0].map((_,i)=>[lightStatus[0][i],lightStatus[1][i]]);
   return [r1,r2];
 }
 
-function prepPlots(){  
-  const sresult = [{'x' : detectors[1].time.map((_,i)=>detectors[1].time[i]/3600.),                  
+function prepPlots(){
+  const sresult = [{'x' : detectors[1].time.map((_,i)=>detectors[1].time[i]/3600.),
                   'y' : detectors[0].historyFlow.map((_,i)=>Math.round(3600*detectors[0].historyFlow[i])),
                   'name' : 'Upstream',
                   'mode' : 'lines'},
-                  {'x' : detectors[1].time.map((_,i)=>detectors[1].time[i]/3600.),                  
+                  {'x' : detectors[1].time.map((_,i)=>detectors[1].time[i]/3600.),
                   'y' : detectors[1].historyFlow.map((_,i)=>Math.round(3600*detectors[1].historyFlow[i])),
                   'name' : 'Downstream',
                   'mode' : 'lines'},
@@ -949,24 +876,24 @@ function prepPlots(){
                   'y' : detectors[1].historySpeed.map((_,i)=>Math.round(3.6*detectors[1].historySpeed[i])),
                   'name' : 'Downstream Speed',
                   'mode' : 'lines'},
-                  {'x' : detectors[1].time.map((_,i)=>detectors[1].time[i]/3600.),                  
+                  {'x' : detectors[1].time.map((_,i)=>detectors[1].time[i]/3600.),
                   'y' : detectors[1].historyGC.map((_,i)=>Math.round((detectors[1].historyGC[i]+Number.EPSILON)*100)/100),
                   'name' : 'Green Phase',
                   'mode' : 'lines'},
-                  {'x' : detectors[1].time.map((_,i)=>detectors[1].time[i]/3600.),                  
+                  {'x' : detectors[1].time.map((_,i)=>detectors[1].time[i]/3600.),
                   'y' : detectors[1].optStat,
                   'name' : 'Ramp Queue',
                   'mode' : 'lines'},
-                  {'x' : detectors[1].time.map((_,i)=>detectors[1].time[i]/3600.),                  
+                  {'x' : detectors[1].time.map((_,i)=>detectors[1].time[i]/3600.),
                   'y' : detectors[1].historyOcc.map((_,i)=>Math.round((detectors[1].historyOcc[i]+Number.EPSILON)*100)/100),
                   'name' : 'Occupancy',
                   'mode' : 'lines'},
-                  {'x' : lightStatus[0].map((_,i)=>lightStatus[0][i]/3600.),                  
+                  {'x' : lightStatus[0].map((_,i)=>lightStatus[0][i]/3600.),
                   'y' : lightStatus[1],
                   'name' : 'Signal Status',
                   'mode' : 'markers',
                   'type' : 'scatter'},
-                  /*{'x' : propRM[0].map((_,i)=>propRM[0][i]/3600.),                  
+                  /*{'x' : propRM[0].map((_,i)=>propRM[0][i]/3600.),
                   'y' : propRM[2],
                   'name' : 'Signal Status',
                   'mode' : 'lines'}*/,
@@ -977,7 +904,7 @@ function prepPlots(){
   //console.log(JSON.stringify(sresult));
   //console.log(propRM[2]);
   localStorage.clear();
-  localStorage.setItem("result",JSON.stringify(sresult));  
+  localStorage.setItem("result",JSON.stringify(sresult));
 }
 
 function dlResults(){ //Downloading the results from the downstream sensor
@@ -991,31 +918,31 @@ function dlResults(){ //Downloading the results from the downstream sensor
   }
   const res = prepResults();
   const csv1 = "data:text/csv;charset=utf-8,"+"time,occupancy,speed,totalflow,mainflow,qramp,greenCycle\n"
-  +res[0].map(e => e.join(",")).join("\n");  
-  const URI1 = encodeURI(csv1);  
+  +res[0].map(e => e.join(",")).join("\n");
+  const URI1 = encodeURI(csv1);
   let link = document.createElement("a");
   link.setAttribute("href", URI1);
   link.setAttribute("download", 'Results_'+nameStirng+'.csv');
   document.body.appendChild(link); // Required for FF
-  link.click();
+  //link.click();
 
   const csv2 = "data:text/csv;charset=utf-8,"+"time,LightStatus\n"
-  +res[1].map(e => e.join(",")).join("\n");  
-  const URI2 = encodeURI(csv2);  
+  +res[1].map(e => e.join(",")).join("\n");
+  const URI2 = encodeURI(csv2);
   link = document.createElement("a");
   link.setAttribute("href", URI2);
   link.setAttribute("download", 'MeterStatus_'+nameStirng+'.csv');
   document.body.appendChild(link); // Required for FF
-  link.click();
+  //link.click();
   window.open("./results.html", "_blank");
 }
 
  //############################################
 // start the simulation thread
-// THIS function does all the things; everything else 
+// THIS function does all the things; everything else
 // only functions/definitions
 // triggers:
-// (i) automatically when loading the simulation 
+// (i) automatically when loading the simulation
 // (ii) when pressing the start button in *gui.js
 //  ("myRun=setInterval(main_loop, 1000/fps);")
 //############################################
@@ -1023,5 +950,7 @@ function dlResults(){ //Downloading the results from the downstream sensor
 console.log("first main execution");
 //showInfo();
 var myRun;
+if (PROP_RM){
+  trainModels();
+  }
 //var myRun=setInterval(main_loop, 1000/fps);
-
