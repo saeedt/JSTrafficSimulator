@@ -19,9 +19,9 @@ Following are the modifications and contributions we made in the traffic simulat
 # Simulation Scenarios
 Three scenarios of no control, ALINEA ramp metering, and proposed ramp metering are provided here. Running the simulation with animation on is time consuming, so all three scenarios are limited to one hour (7:00-8:00AM) intervals with speed set to 150 frames per second. Running each scenario on a fast web browser (Google Chrome) and computer takes about 20 seconds.
 
-* [No Ramp Control Scenario](https://saeedt.github.io/JSTrafficSimulator/index.html)
-* [ALINEA Ramp Metering](https://saeedt.github.io/JSTrafficSimulator/index_alinea.html)
-* [The Proposed Ramp Metering Method](https://saeedt.github.io/JSTrafficSimulator/index_proposed.html)
+* [No Ramp Control Scenario](https://saeedt.github.io/JSTrafficSimulator/index)
+* [ALINEA Ramp Metering](https://saeedt.github.io/JSTrafficSimulator/index_alinea)
+* [The Proposed Ramp Metering Method](https://saeedt.github.io/JSTrafficSimulator/index_proposed)
 
 # More Information
 For more information about the study and results see our open access publication [A Novel Ramp Metering Approach Based on Machine Learning and Historical Data](https://www.mdpi.com/2504-4990/2/4/21/xml).
