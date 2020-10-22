@@ -23,5 +23,12 @@ Three scenarios of no control, ALINEA ramp metering, and proposed ramp metering 
 * [ALINEA Ramp Metering](https://saeedt.github.io/JSTrafficSimulator/index_alinea)
 * [The Proposed Ramp Metering Method](https://saeedt.github.io/JSTrafficSimulator/index_proposed)
 
+# Demo Links
+Click on the scenario you would like to try!
+
+* [No Ramp Control Scenario](https://saeedt.github.io/JSTrafficSimulator/index)
+* [ALINEA Ramp Metering](https://saeedt.github.io/JSTrafficSimulator/index_alinea)
+* [The Proposed Ramp Metering Method](https://saeedt.github.io/JSTrafficSimulator/index_proposed)
+
 # More Information
 For more information about the study and results see our open access publication [A Novel Ramp Metering Approach Based on Machine Learning and Historical Data](https://www.mdpi.com/2504-4990/2/4/21/xml).
